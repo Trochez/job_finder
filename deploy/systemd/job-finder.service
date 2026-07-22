@@ -1,0 +1,12 @@
+[Unit]
+Description=job-finder worker — single run-once cycle
+Documentation=https://github.com/user/job-finder
+
+[Service]
+Type=oneshot
+ExecStart=job-finder-worker
+StandardOutput=journal
+StandardError=journal
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=full

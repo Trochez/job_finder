@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily job-finder worker timer
+Documentation=https://github.com/user/job-finder
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target

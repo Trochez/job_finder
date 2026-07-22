@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+build/
+dist/
+
+# Debug
+.pytest_cache/
+.ruff_cache/
+
+# Data
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+.keys/
+
+# Agent state
+.omo/run-continuation/
+.omo/state/
+.omo/evidence/
