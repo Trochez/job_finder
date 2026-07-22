@@ -30,3 +30,14 @@ Thumbs.db
 .omo/run-continuation/
 .omo/state/
 .omo/evidence/
+
+# Config artifacts
+.omx/
+.opencode/
+.opencode.json
+oh-my-opencode.json
+oc.sh
+oc_termly.sh
+
+# Keys/secrets
+.keys/
