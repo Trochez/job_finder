@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% set active_page = "checkpoints" %}
+
+{% block title %}Checkpoints - job_finder{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Checkpoints</h1>
+  <p>Active workflow checkpoints requiring user intervention</p>
+</div>
+
+{% if checkpoints %}
+  {% for cp in checkpoints %}
+  <div class="checkpoint-card">
+    <h3>
+      {% if cp.state == "captcha" %}
+        CAPTCHA Challenge
+      {% elif cp.state == "login_challenge" %}
+        Login Challenge
+      {% elif cp.state == "two_factor" %}
+        Two-Factor Authentication
+      {% elif cp.state == "anti_automation" %}
+        Anti-Automation Detection
+      {% elif cp.state == "unknown_screening_question" %}
+        Unknown Screening Question
+      {% else %}
+        Checkpoint
+      {% endif %}
+    </h3>
+    <div class="checkpoint-detail">
+      <strong>Job:</strong> {{ cp.job_id }}<br>
+      <strong>State:</strong> {{ cp.state }}<br>
+      <strong>Created:</strong> {{ cp.created_at }}<br>
+      {% if cp.description %}
+        <strong>Detail:</strong> {{ cp.description }}
+      {% endif %}
+    </div>
+
+    <form method="POST" action="{{ url_for('checkpoints') }}" class="btn-group">
+      <input type="hidden" name="checkpoint_id" value="{{ cp.checkpoint_id }}">
+      <input type="hidden" name="action" value="resume">
+
+      {% if cp.state == "captcha" or cp.state == "login_challenge" or cp.state == "two_factor" %}
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="answer-{{ cp.checkpoint_id }}" class="sr-only">Answer</label>
+        <input type="text" id="answer-{{ cp.checkpoint_id }}" name="answer"
+          placeholder="Enter answer..." style="width: auto;"
+          aria-describedby="answer-desc-{{ cp.checkpoint_id }}">
+        <p id="answer-desc-{{ cp.checkpoint_id }}" class="help-text">Provide the required response to proceed</p>
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm">Submit Answer</button>
+      {% endif %}
+
+      <button type="submit" class="btn btn-secondary btn-sm" formaction="{{ url_for('checkpoints') }}"
+        onclick="this.form.action.value='dismiss'">Dismiss</button>
+    </form>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="empty-state">
+    <p>No active checkpoints.</p>
+    <p>All workflows are proceeding normally.</p>
+  </div>
+{% endif %}
+
+<div class="card" style="margin-top: var(--space-xl);">
+  <div class="card-header">
+    <h2>Global Controls</h2>
+  </div>
+
+  <form method="POST" action="{{ url_for('checkpoints') }}">
+    <input type="hidden" name="checkpoint_id" value="global">
+    <input type="hidden" name="action" value="toggle_kill_switch">
+
+    <div class="form-group">
+      <label class="toggle">
+        <input type="checkbox" name="kill_switch" value="1"
+          onchange="this.form.submit()"
+          {% if kill_switch_active %}checked{% endif %}>
+        <span class="toggle-track"></span>
+        <span>Kill Switch {% if kill_switch_active %}(Active){% else %}(Inactive){% endif %}</span>
+      </label>
+      <p class="help-text">When active, stops all automated job processing until manually resumed</p>
+    </div>
+  </form>
+</div>
+{% endblock %}

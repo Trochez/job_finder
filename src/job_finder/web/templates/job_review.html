@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% set active_page = "job_review" %}
+
+{% block title %}Job Review - job_finder{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Job Review</h1>
+  <p>Scored jobs with eligibility decisions and cap status</p>
+</div>
+
+{% if jobs %}
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>Title</th>
+          <th>Score</th>
+          <th>Eligibility</th>
+          <th>Factors</th>
+          <th>Route</th>
+          <th>Cap Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job in jobs %}
+        <tr>
+          <td>{{ job.company }}</td>
+          <td>{{ job.title }}</td>
+          <td>
+            <span class="badge {% if job.score >= 70 %}badge-success{% elif job.score >= 40 %}badge-warning{% else %}badge-error{% endif %}">
+              {{ job.score }}
+            </span>
+          </td>
+          <td>
+            {% if job.eligibility == "eligible" %}
+              <span class="badge badge-success">Eligible</span>
+            {% elif job.eligibility == "hard_filter_blocked" %}
+              <span class="badge badge-error">Hard Filter</span>
+            {% elif job.eligibility == "ineligible" %}
+              <span class="badge badge-error">Ineligible</span>
+            {% else %}
+              <span class="badge badge-warning">Threshold Unset</span>
+            {% endif %}
+          </td>
+          <td>
+            {% for factor in job.factors %}
+              <span class="badge badge-info">{{ factor }}</span>
+            {% endfor %}
+          </td>
+          <td>
+            {% if job.route == "automated" %}
+              <span class="badge badge-success">Automated</span>
+            {% elif job.route == "review" %}
+              <span class="badge badge-warning">Review</span>
+            {% else %}
+              <span class="badge badge-info">{{ job.route }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if job.cap_hit %}
+              <span class="badge badge-error">Capped</span>
+            {% else %}
+              <span class="badge badge-success">Open</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="empty-state">
+  <p>No jobs scored yet.</p>
+  <p>Jobs will appear here once the scoring pipeline has processed them.</p>
+</div>
+{% endif %}
+{% endblock %}

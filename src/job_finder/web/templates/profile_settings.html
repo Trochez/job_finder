@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% set active_page = "profile_settings" %}
+
+{% block title %}Profile Settings - job_finder{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Profile Settings</h1>
+  <p>Configure candidate profile and search preferences</p>
+</div>
+
+<form method="POST" action="{{ url_for('profile_settings') }}">
+  <div class="card">
+    <div class="card-header">
+      <h2>Candidate Profile</h2>
+    </div>
+
+    <div class="form-group">
+      <label for="timezone">Timezone</label>
+      <select id="timezone" name="timezone" required>
+        <option value="">Select a timezone...</option>
+        {% for tz in timezones %}
+        <option value="{{ tz }}" {% if tz == settings.timezone %}selected{% endif %}>{{ tz }}</option>
+        {% endfor %}
+      </select>
+      <p class="help-text">IANA timezone used for scheduling and daily cap tracking</p>
+    </div>
+
+    <div class="form-group">
+      <label>Hard Filters</label>
+      <div class="checkbox-group">
+        {% for filter_key, filter_label in hard_filter_options %}
+        <label>
+          <input type="checkbox" name="hard_filters" value="{{ filter_key }}"
+            {% if filter_key in settings.hard_filters %}checked{% endif %}>
+          {{ filter_label }}
+        </label>
+        {% endfor %}
+      </div>
+      <p class="help-text">Jobs matching any hard filter will be marked ineligible</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>Scoring & Limits</h2>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="threshold">Score Threshold</label>
+        <input type="number" id="threshold" name="threshold" min="0" max="100"
+          value="{{ settings.threshold }}" required aria-describedby="threshold-help">
+        <p class="help-text" id="threshold-help">Minimum score (0-100) for eligibility</p>
+      </div>
+
+      <div class="form-group">
+        <label for="daily_cap">Daily Application Cap</label>
+        <input type="number" id="daily_cap" name="daily_cap" min="0" max="100"
+          value="{{ settings.daily_cap }}" required aria-describedby="daily-cap-help">
+        <p class="help-text" id="daily-cap-help">Maximum automated applications per day (0 = unlimited)</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-group">
+    <button type="submit" class="btn btn-primary">Save Settings</button>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}

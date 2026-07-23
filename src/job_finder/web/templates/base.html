@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}job_finder{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to content</a>
+
+  <nav class="nav" aria-label="Main navigation">
+    <div class="nav-inner">
+      <a href="{{ url_for('dashboard') }}" class="nav-brand">job_finder</a>
+
+      <button class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" id="nav-toggle">
+        &#9776;
+      </button>
+
+      <ul class="nav-links" id="nav-links">
+        <li><a href="{{ url_for('dashboard') }}" {% if active_page == 'dashboard' %}aria-current="page"{% endif %}>Dashboard</a></li>
+        <li><a href="{{ url_for('profile_settings') }}" {% if active_page == 'profile_settings' %}aria-current="page"{% endif %}>Profile</a></li>
+        <li><a href="{{ url_for('cv_source') }}" {% if active_page == 'cv_source' %}aria-current="page"{% endif %}>CV Source</a></li>
+        <li><a href="{{ url_for('job_review') }}" {% if active_page == 'job_review' %}aria-current="page"{% endif %}>Job Review</a></li>
+        <li><a href="{{ url_for('audit') }}" {% if active_page == 'audit' %}aria-current="page"{% endif %}>Audit</a></li>
+        <li><a href="{{ url_for('checkpoints') }}" {% if active_page == 'checkpoints' %}aria-current="page"{% endif %}>Checkpoints</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main id="main-content" class="container">
+    {% for category, message in get_flashed_messages(request) %}
+      <div class="flash flash-{{ category }}" role="status">{{ message }}</div>
+    {% endfor %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <p>job_finder &mdash; private single-user job application service</p>
+  </footer>
+
+  <script>
+    (function() {
+      var toggle = document.getElementById('nav-toggle');
+      var links = document.getElementById('nav-links');
+      if (toggle && links) {
+        toggle.addEventListener('click', function() {
+          var expanded = toggle.getAttribute('aria-expanded') === 'true' ? false : true;
+          toggle.setAttribute('aria-expanded', expanded);
+          links.classList.toggle('is-open');
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

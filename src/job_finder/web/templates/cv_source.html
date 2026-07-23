@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% set active_page = "cv_source" %}
+
+{% block title %}CV Source - job_finder{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>CV Source</h1>
+  <p>Manage candidate profile version and CV renderer path</p>
+</div>
+
+<form method="POST" action="{{ url_for('cv_source') }}">
+  <div class="card">
+    <div class="card-header">
+      <h2>Profile Version</h2>
+    </div>
+
+    <div class="form-group">
+      <label for="profile_version">Active Profile Version</label>
+      <select id="profile_version" name="profile_version" required>
+        <option value="">Select a version...</option>
+        {% for version in profile_versions %}
+        <option value="{{ version }}" {% if version == settings.active_version %}selected{% endif %}>
+          {{ version }}
+        </option>
+        {% endfor %}
+      </select>
+      <p class="help-text">Which version of the candidate profile to use for scoring</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>Renderer</h2>
+    </div>
+
+    <div class="form-group">
+      <label for="renderer_path">Local Renderer Path</label>
+      <input type="text" id="renderer_path" name="renderer_path"
+        value="{{ settings.renderer_path }}" placeholder="/path/to/renderer"
+        aria-describedby="renderer-help">
+      <p class="help-text" id="renderer-help">Filesystem path to the CV renderer executable or script</p>
+    </div>
+  </div>
+
+  <div class="btn-group">
+    <button type="submit" class="btn btn-primary">Save CV Source</button>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}

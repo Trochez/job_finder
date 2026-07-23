@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% set active_page = "dashboard" %}
+
+{% block title %}Dashboard - job_finder{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Dashboard</h1>
+  <p>Overview of your job search workflow</p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-value">{{ stats.total_jobs }}</div>
+    <div class="stat-label">Total Jobs Scored</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ stats.eligible_jobs }}</div>
+    <div class="stat-label">Eligible</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ stats.submitted_jobs }}</div>
+    <div class="stat-label">Submitted</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ stats.pending_review }}</div>
+    <div class="stat-label">Pending Review</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ stats.active_checkpoints }}</div>
+    <div class="stat-label">Active Checkpoints</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ stats.todays_applications }} / {{ stats.daily_cap }}</div>
+    <div class="stat-label">Today's Applications</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2>Quick Actions</h2>
+  </div>
+  <div class="btn-group">
+    <a href="{{ url_for('job_review') }}" class="btn btn-primary">Review Jobs</a>
+    <a href="{{ url_for('checkpoints') }}" class="btn btn-secondary">Manage Checkpoints</a>
+    <a href="{{ url_for('profile_settings') }}" class="btn btn-secondary">Profile Settings</a>
+  </div>
+</div>
+
+{% if not stats.total_jobs and not stats.submitted_jobs and not stats.pending_review %}
+<div class="empty-state">
+  <p>No job data yet.</p>
+  <p>Configure your profile and CV source to get started.</p>
+  <div class="btn-group" style="justify-content: center; margin-top: var(--space-md);">
+    <a href="{{ url_for('profile_settings') }}" class="btn btn-primary">Configure Profile</a>
+    <a href="{{ url_for('cv_source') }}" class="btn btn-secondary">Set CV Source</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

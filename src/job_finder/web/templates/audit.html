@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% set active_page = "audit" %}
+
+{% block title %}Audit - job_finder{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Audit</h1>
+  <p>Searchable evidence history with retention information</p>
+</div>
+
+<div class="card">
+  <form method="GET" action="{{ url_for('audit') }}" role="search" aria-label="Filter audit records">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="search">Search</label>
+        <input type="text" id="search" name="search" value="{{ search_query }}"
+          placeholder="Job ID, company, or evidence text..." aria-describedby="search-help">
+        <p class="help-text" id="search-help">Filter audit records by keyword</p>
+      </div>
+      <div class="form-group">
+        <label for="status">Status</label>
+        <select id="status" name="status">
+          <option value="">All statuses</option>
+          {% for status in status_options %}
+          <option value="{{ status }}" {% if status == filter_status %}selected{% endif %}>{{ status }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group" style="display: flex; align-items: flex-end;">
+        <button type="submit" class="btn btn-primary">Filter</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+{% if records %}
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Job</th>
+          <th>Event</th>
+          <th>Detail</th>
+          <th>Retention</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in records %}
+        <tr>
+          <td>{{ record.timestamp }}</td>
+          <td>{{ record.job_id }}</td>
+          <td>
+            {% if record.event_type == "score" %}
+              <span class="badge badge-success">Score</span>
+            {% elif record.event_type == "submission" %}
+              <span class="badge badge-info">Submission</span>
+            {% elif record.event_type == "error" %}
+              <span class="badge badge-error">Error</span>
+            {% elif record.event_type == "checkpoint" %}
+              <span class="badge badge-warning">Checkpoint</span>
+            {% else %}
+              <span class="badge badge-info">{{ record.event_type }}</span>
+            {% endif %}
+          </td>
+          <td>{{ record.detail }}</td>
+          <td>
+            {% if record.retention_days %}
+              <span class="badge badge-info">{{ record.retention_days }} days</span>
+            {% else %}
+              <span class="badge badge-warning">Indefinite</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="empty-state">
+  <p>No audit records found.</p>
+  <p>{% if search_query %}Try adjusting your search or filter criteria.{% else %}Audit records will appear as workflow events are processed.{% endif %}</p>
+</div>
+{% endif %}
+{% endblock %}

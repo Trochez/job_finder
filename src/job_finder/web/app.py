@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
+from starlette.templating import Jinja2Templates
 
 from job_finder.adapters.db import bootstrap_private_sqlite_storage
 from job_finder.adapters.migrations import connect_migrated_sqlite_database
@@ -17,6 +19,7 @@ from job_finder.adapters.settings import PrivateSettings
 
 from .deps import AppDependencies
 from .errors import web_error_mapper
+from .routes import all_routers
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -26,10 +29,36 @@ if TYPE_CHECKING:
 # Module-level hook for test dependency injection.
 _test_deps: AppDependencies | None = None
 
+# Template and static directory paths.
+_HERE = Path(__file__).resolve().parent
+TEMPLATES_DIR = _HERE / "templates"
+STATIC_DIR = _HERE / "static"
+
 
 def inject_test_deps(deps: AppDependencies) -> None:  # noqa: D103
     global _test_deps  # noqa: PLW0603
     _test_deps = deps
+
+
+def _setup_templates(app: FastAPI) -> Jinja2Templates:
+    """Configure Jinja2 templates and attach to app state."""
+    templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+
+    # Register a global function to retrieve flash messages from app state.
+    def _get_flashed_messages(_request: Request) -> list[tuple[str, str]]:
+        store: list[tuple[str, str]] = getattr(
+            app.state, "flash_store", [],
+        )
+        if hasattr(app.state, "flash_store"):
+            app.state.flash_store = []
+        return store
+
+    # Register as Jinja2 global for use in base template.
+    dict.__setitem__(
+        templates.env.globals, "get_flashed_messages", _get_flashed_messages,
+    )
+    app.state.templates = templates
+    return templates
 
 
 def create_app(
@@ -49,6 +78,17 @@ def create_app(
         version="0.1.0",
         lifespan=app_lifespan,
     )
+
+    app.mount(
+        "/static",
+        StaticFiles(directory=str(STATIC_DIR)),
+        name="static",
+    )
+
+    _setup_templates(app)
+
+    for router in all_routers():
+        app.include_router(router)
 
     @app.exception_handler(Exception)
     async def _handle_error(
