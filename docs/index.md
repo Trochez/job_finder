@@ -7,14 +7,20 @@ This is the documentation landing page for `job_finder`.
 - `index.md` — root project entrypoint
 - `AGENTS.md` — project operating contract
 - `linkedin-mcp.md` — LinkedIn MCP setup and auth status
+- `architecture.md` — architecture documentation with ADRs
+- `runbook.md` — operator runbook for fake-mode deployment
+- `compliance/linkedin-access-basis.md` — written access-basis compliance record
+- `compliance/mcp-supply-chain.md` — MCP supply chain verification docs
 - `../.omx/specs/deep-interview-job_finder.md` — non-sensitive requirements overview for the future workflow
 
 ## Status
 
-Docs cover the managed bootstrap scaffold only.
+Docs cover managed bootstrap scaffold, architecture, compliance, and operations.
 LinkedIn MCP is configured and authenticated via secure interactive browser login.
+Compliance gate validates access-basis records but never enables live access.
 
 ## Execution policy
 
 - Keep the scaffold aligned with the master workspace contract.
-- Add runbook, architecture, and implementation docs as the project grows.
+- Maintain runbook, architecture, and compliance docs as the project grows.
+- Compliance gate is read-only — enforcement lives in the policy gate.
