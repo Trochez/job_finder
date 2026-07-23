@@ -9,8 +9,14 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
+from src.job_finder.adapters.db import bootstrap_private_sqlite_storage
+from src.job_finder.adapters.migrations import (
+    connect_migrated_sqlite_database,
+)
+from src.job_finder.adapters.settings import PrivateSettings
 
 from .fakes import FakeMcpClient, FakeRenderer, FakeTelegramClient
+from .fakes.sentinels import SentinelDataSet
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -73,3 +79,29 @@ def evidence_dir() -> Path:
     path = Path.cwd() / ".omo/state/omo-team/job-finder-wave1/workers/worker-2/evidence"
     path.mkdir(parents=True, exist_ok=True)
     return path
+
+
+# ── Shared fixtures for e2e and security tests ──────────────────────────────
+
+
+@pytest.fixture
+def sentinel_data_set() -> SentinelDataSet:
+    """Provide a fresh set of sentinel data for security/privacy tests."""
+    return SentinelDataSet()
+
+
+@pytest.fixture
+def e2e_sqlite_connection(
+    tmp_path: Path,
+) -> Generator[sqlite3.Connection, None, None]:
+    """Bootstrapped + migrated SQLite database for end-to-end tests."""
+    settings = PrivateSettings.from_paths(
+        app_data_dir=tmp_path / "private",
+        sqlite_database_name="e2e_test.sqlite3",
+    )
+    _ = bootstrap_private_sqlite_storage(settings)
+    connection = connect_migrated_sqlite_database(settings.sqlite_database_path)
+    try:
+        yield connection
+    finally:
+        connection.close()
