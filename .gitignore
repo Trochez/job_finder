@@ -29,7 +29,7 @@ Thumbs.db
 # Agent state
 .omo/run-continuation/
 .omo/state/
-.omo/evidence/
+# .omo/evidence/ — evidence is committed as part of the plan deliverables
 
 # Config artifacts
 .omx/
