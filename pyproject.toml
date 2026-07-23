@@ -11,8 +11,12 @@ dev = [
     "basedpyright>=1.31.0",
     "fastapi>=0.115.0",
     "httpx2>=1.0.0",
+    "jinja2>=3.1.0",
+    "python-multipart>=0.0.32",
     "pytest>=9.0.0",
     "ruff>=0.12.0",
+    "pytest-playwright>=0.8.0",
+    "uvicorn>=0.51.0",
 ]
 
 [tool.basedpyright]
@@ -33,6 +37,7 @@ reportPrivateUsage = "error"
 target-version = "py312"
 line-length = 88
 src = ["src", "tests"]
+exclude = [".agents", ".opencode", ".git", "__pycache__", ".venv", "build", "dist"]
 
 [tool.ruff.lint]
 select = ["ALL"]
@@ -52,6 +57,8 @@ fixable = ["ALL"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["ARG", "D", "PLR2004", "S101", "SLF001"]
+"tests/e2e/*.py" = ["PLC0415", "PT022", "S108", "S310", "S603", "TC003"]
+"tests/security/*.py" = ["TC001", "TC003"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
@@ -67,3 +74,7 @@ minversion = "9.0"
 testpaths = ["tests"]
 addopts = ["-ra", "--strict-config", "--strict-markers"]
 filterwarnings = ["error"]
+markers = [
+    "e2e: end-to-end integration tests with fake MCP and test client",
+    "security: sentinel privacy, retention, and default-deny security tests",
+]

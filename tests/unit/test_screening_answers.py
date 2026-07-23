@@ -80,4 +80,4 @@ class TestScreeningAnswerDataclass:
         answer = ScreeningAnswer(question_key="q", answer="a")
 
         with pytest.raises(AttributeError):
-            answer.question_key = "changed"  # type: ignore[reportAttributeAccessIssue]
+            answer.question_key = "changed"  # pyright: ignore[reportAttributeAccessIssue]

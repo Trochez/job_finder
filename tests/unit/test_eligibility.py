@@ -241,17 +241,17 @@ def test_eligibility_verdict_immutable() -> None:
         hard_filters=(),
     )
     with pytest.raises((FrozenInstanceError, AttributeError)):
-        verdict.decision = "something"  # type: ignore[assignment]
+        verdict.decision = "something"  # pyright: ignore[reportAttributeAccessIssue]
 
 
 def test_hard_filter_immutable() -> None:
     hf = HardFilter(name="location", passed=True)
     with pytest.raises((FrozenInstanceError, AttributeError)):
-        hf.name = "visa"  # type: ignore[assignment]
+        hf.name = "visa"  # pyright: ignore[reportAttributeAccessIssue]
 
 
 def test_eligibility_rule_immutable() -> None:
     flt = HardFilter(name="location", passed=True)
     rule = EligibilityRule(threshold=50, hard_filters=(flt,))
     with pytest.raises((FrozenInstanceError, AttributeError)):
-        rule.threshold = 100  # type: ignore[assignment]
+        rule.threshold = 100  # pyright: ignore[reportAttributeAccessIssue]

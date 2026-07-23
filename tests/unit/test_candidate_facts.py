@@ -116,7 +116,7 @@ def test_candidate_profile_is_versioned_and_immutable() -> None:
     assert profile.active.sequence_number == 2
 
     with pytest.raises(FrozenInstanceError):
-        profile.active_version = "v3"
+        profile.active_version = "v3"  # pyright: ignore[reportAttributeAccessIssue]
 
 
 def test_candidate_reference_and_version_require_timezone_aware_datetimes() -> None:
