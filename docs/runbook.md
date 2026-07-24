@@ -1,13 +1,30 @@
 # job_finder Operator Runbook
 
-## Fake-mode startup
+## Fake-mode startup (web app)
 
 The default configuration runs in **fake mode** — all MCP calls use the
 in-memory `FakeMCPJobSource` adapter.  No network access, no LinkedIn auth.
 
 ```bash
 # From project root
-uv run python -m job_finder.main
+uv run python -m job_finder.web.app
+```
+
+Expected output:
+
+```
+[INFO]     Started server process [12345]
+[INFO]     Waiting for application startup.
+[INFO]     Application startup complete.
+[INFO]     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+```
+
+## Manual worker run (fake mode)
+
+To run a single discovery cycle (worker) in fake mode:
+
+```bash
+uv run python -m job_finder.main --run-once
 ```
 
 Expected output:
@@ -17,13 +34,6 @@ Job finder started (fake mode)
 Run watermark at 2026-01-02T03:04:05+00:00
 0 jobs discovered, 0 eligible
 ```
-
-To run a single discovery cycle:
-
-```bash
-uv run python -m job_finder.main --run-once
-```
-
 ## systemd-user timer
 
 For periodic execution, install the user timer:

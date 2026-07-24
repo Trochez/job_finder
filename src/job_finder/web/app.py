@@ -162,3 +162,9 @@ class _NullNotifier:
         self, workflow_status: str = "", aggregate_score: int | None = None
     ) -> None:
         """Silently drop the notification."""
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(create_app(), host="127.0.0.1", port=8000)
