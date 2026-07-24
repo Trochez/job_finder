@@ -5,10 +5,7 @@
       "type": "local",
       "command": ["npx", "-y", "@mjyoo2/overleafmcp"],
       "enabled": true,
-      "environment": {
-        "OVERLEAF_PROJECT_ID": "TU_PROJECT_ID_DE_OVERLEAF",
-        "OVERLEAF_GIT_TOKEN": "TU_GIT_TOKEN_DE_OVERLEAF"
-      }
+      "_comment": "Credentials managed via PrivateSettings (token file on disk, 0o600). See opencode.PrivateSettings for path configuration."
     },
     "linkedin": {
       "type": "local",

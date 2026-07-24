@@ -35,6 +35,18 @@ case "$MODO" in
     ORIGEN="$PATH_CONFIG/oh-my-opencode-dslw.json"
     MODO="dslw"
     ;;
+  "odslw")
+    ORIGEN="$PATH_CONFIG/oh-my-opencode-odslw.json"
+    MODO="odslw"
+    ;;
+  "ofree")
+    ORIGEN="$PATH_CONFIG/oh-my-opencode-ofree.json"
+    MODO="ofree"
+    ;;
+  "onv")
+    ORIGEN="$PATH_CONFIG/oh-my-opencode-onv.json"
+    MODO="onv"
+    ;;
   "lw")
     ORIGEN="$PATH_CONFIG/oh-my-opencode-lowcost.json"
     MODO="lw"

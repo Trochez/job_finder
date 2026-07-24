@@ -12,6 +12,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
+from src.job_finder.adapters.cv_renderer.cv_source_port import (
+    FetchSourceRequest,
+)
+from src.job_finder.adapters.cv_renderer.overleaf_config import OverleafConfig
 from src.job_finder.adapters.cv_renderer.port import RenderRequest
 from src.job_finder.adapters.mcp.fake import FakeMCPJobSource
 from src.job_finder.adapters.mcp.policy import create_job_source
@@ -63,7 +67,11 @@ from src.job_finder.domain.states import (
     WorkflowState,
 )
 
-from tests.fakes import FakeRenderer
+from tests.fakes import (
+    FakeOverleafRenderer,
+    FakeOverleafSource,
+    FakeRenderer,
+)
 
 if TYPE_CHECKING:
     import sqlite3
@@ -576,6 +584,60 @@ class TestFakeMcpJobCycleE2e:
         # 4. Cap with higher limit allows more
         big_policy = DailyCapPolicy(limit=100)
         assert check_cap(big_policy, counter, run_id)
+
+    def test_overleaf_source_and_renderer_cycle(
+        self,
+        tmp_path: Path,
+        seeded_profile: CandidateProfileId,
+    ) -> None:
+        """Overleaf source fetches .tex, renderer produces artifact."""
+        profile_id = seeded_profile
+        cache_dir = tmp_path / "overleaf-cache"
+        cache_dir.mkdir(parents=True, exist_ok=True)
+
+        # 1. Create Overleaf config and source
+        config = OverleafConfig(
+            project_id="abcdefabcdefabcdefabcdef",
+            token_path=tmp_path / ".secrets" / "overleaf-token",
+        )
+        source = FakeOverleafSource()
+
+        # 2. Fetch source (writes main.tex to snapshot_dir)
+        snapshot_dir = cache_dir / "snapshots" / "test-snap"
+        fetch_request = FetchSourceRequest(
+            overleaf_config=config,
+            cache_dir=cache_dir,
+            snapshot_dir=snapshot_dir,
+        )
+        fetch_result = source.fetch_source(fetch_request)
+
+        assert fetch_result.snapshot_dir == snapshot_dir
+        assert fetch_result.revision == "fake_revision_001"
+        assert (snapshot_dir / "main.tex").exists()
+        assert (snapshot_dir / "main.tex").read_text(encoding="utf-8").startswith(
+            "\\documentclass",
+        )
+        assert len(source.fetch_requests) == 1
+
+        # 3. Create Overleaf renderer and render a CV
+        renderer = FakeOverleafRenderer(source=source)
+        output_path = tmp_path / "cv-output"
+        output_path.mkdir(parents=True, exist_ok=True)
+        render_request = RenderRequest(
+            candidate_profile_id=profile_id,
+            template_name="moderncv",
+            output_path=output_path,
+            fact_ids=(),
+        )
+        render_result = renderer.render(render_request)
+
+        assert isinstance(render_result.artifact_id, str)
+        assert len(render_result.artifact_id) == 32  # md5 hex length
+        assert render_result.output_path.exists()
+        assert render_result.output_path.suffix == ".tex"
+        assert "Overleaf CV" in render_result.output_path.read_text(encoding="utf-8")
+        assert len(renderer.rendered_requests) == 1
+        assert renderer.rendered_requests[0].template_name == "moderncv"
 
     @pytest.mark.usefixtures("seeded_profile")
     def test_fake_mcp_source_discovers_jobs(self) -> None:

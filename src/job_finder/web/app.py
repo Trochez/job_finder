@@ -10,6 +10,9 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
+from job_finder.adapters.cv_renderer.overleaf_config import OverleafConfig
+from job_finder.adapters.cv_renderer.overleaf_renderer import OverleafGitRenderer
+from job_finder.adapters.cv_renderer.overleaf_source import OverleafGitSource
 from job_finder.adapters.db import bootstrap_private_sqlite_storage
 from job_finder.adapters.migrations import connect_migrated_sqlite_database
 from job_finder.adapters.repositories.workflow import (
@@ -124,6 +127,26 @@ async def app_lifespan(app: FastAPI) -> AsyncGenerator[None]:  # type: ignore[mi
             notifier=_NullNotifier(),
             mcp_available=False,
         )
+
+        # Wire Overleaf source and renderer if config path provided
+        if settings.overleaf_config_path is not None:
+            token_path = (
+                settings.secrets_reference_path / "overleaf_token"
+                if settings.secrets_reference_path
+                else Path("/dev/null")
+            )
+
+            overleaf_source = OverleafGitSource()
+            overleaf_renderer = OverleafGitRenderer(
+                source=overleaf_source,
+                overleaf_config=OverleafConfig(
+                    project_id="",  # Will be loaded from DB at render time
+                    token_path=token_path,
+                ),
+                cache_dir=settings.app_data_dir / "overleaf_cache",
+            )
+            deps.overleaf_source = overleaf_source
+            deps.overleaf_renderer = overleaf_renderer
 
     app.state.deps = deps
     try:

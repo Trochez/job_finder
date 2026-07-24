@@ -81,6 +81,80 @@ The gate is a **validator, not an enforcer**.  It answers "is this record
 valid?" but does not block or permit any execution path.  Enforcement happens
 at the `policy.py` gate in `adapters/mcp/`.
 
+## Overleaf CV Pull adapter
+
+Overleaf integration adds two port protocols and two adapter implementations under `adapters/cv_renderer/`.
+
+### Port split
+
+**CvSourcePort** (`cv_source_port.py`) — capability contract for CV source acquisition from remote sources. Single method `fetch_source(request: FetchSourceRequest) -> FetchSourceResult`.
+
+**CvRendererPort** (`port.py`) — capability contract for rendering CV artifacts. Single method `render(request: RenderRequest) -> RenderResult`.
+
+### Adapters
+
+**OverleafGitSource** (`overleaf_source.py`) — singleton adapter implementing `CvSourcePort`. Uses `threading.Lock` to serialise concurrent `fetch_source` calls, preventing working-tree corruption. Delegates Git operations to `overleaf_git.clone_or_pull`. Fetched files are copied to a per-request `snapshot_dir` inside the lock (TOCTOU safety). Requires `git` binary on `PATH`.
+
+**OverleafGitRenderer** (`overleaf_renderer.py`) — adapter implementing `CvRendererPort`. Delegates source acquisition to a `CvSourcePort` instance, reads `.tex` files from the fetched snapshot directory, and writes output to `request.output_path`. Snapshot directory is created via `tempfile.mkdtemp` and cleaned up in a `finally` block.
+
+### Secret storage
+
+Overleaf Git token stored on filesystem at a configurable path with `0o600` permissions. Token fed to Git via `GIT_ASKPASS` temporary script that cats the token file. Script is created in `app_data_dir` and cleaned up in `finally` block. Token is never stored in environment variables, memory, or the database.
+
+### Error hierarchy
+
+```
+OverleafSourceError          — base exception
+├── OverleafTokenExpired     — token invalid or expired
+├── OverleafProjectNotFound  — project does not exist
+├── OverleafRateLimited      — rate limit exceeded
+├── OverleafUnreachable      — service unreachable / unknown error
+└── GitBinaryMissing         — git not on PATH
+```
+
+### Configuration
+
+`OverleafConfig` (`overleaf_config.py`) — frozen dataclass with `__post_init__` validation: `project_id` must match `[0-9a-f]{24}`, `token_path` must be absolute and not reference `.keys` paths.
+
+### Data flow
+
+```
+RenderRequest
+  │
+  ▼
+OverleafGitRenderer.render()
+  │
+  ├── tempfile.mkdtemp(prefix="overleaf_snapshot_")
+  │
+  ├── FetchSourceRequest(cache_dir, snapshot_dir, overleaf_config)
+  │     │
+  │     ▼
+  │   OverleafGitSource.fetch_source()
+  │     │
+  │     ├── threading.Lock.acquire()
+  │     │
+  │     ├── shutil.which("git")  →  GitBinaryMissing
+  │     │
+  │     ├── overleaf_git.clone_or_pull()
+  │     │     ├── _create_askpass_script(token_path)  →  GIT_ASKPASS
+  │     │     ├── git clone/pull  →  cache_dir
+  │     │     └── git rev-parse HEAD  →  revision SHA
+  │     │
+  │     ├── shutil.copytree(cache_dir → snapshot_dir)  # inside lock
+  │     │
+  │     ├── threading.Lock.release()
+  │     │
+  │     └── FetchSourceResult(snapshot_dir, revision)
+  │
+  ├── _locate_primary_tex(snapshot_dir, template_name)
+  │     ├── template_dir/*.tex  (preferred)
+  │     └── root/*.tex          (fallback)
+  │
+  ├── output_file.write_text(latex_content)
+  │
+  └── shutil.rmtree(snapshot_dir)  # cleanup
+```
+
 ## ADRs
 
 ### ADR-001: src/ layout

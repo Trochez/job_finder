@@ -9,6 +9,8 @@ if TYPE_CHECKING:
     import sqlite3
     from collections.abc import Callable
 
+    from job_finder.adapters.cv_renderer.cv_source_port import CvSourcePort
+    from job_finder.adapters.cv_renderer.port import CvRendererPort
     from job_finder.adapters.notifications.telegram import TelegramNotifierPort
     from job_finder.adapters.repositories.workflow import (
         SqliteWorkflowRepository,
@@ -25,6 +27,8 @@ class AppDependencies:
     workflow_repo: SqliteWorkflowRepository
     notifier: TelegramNotifierPort
     mcp_available: bool = False
+    overleaf_source: CvSourcePort | None = None
+    overleaf_renderer: CvRendererPort | None = None
     _cleanup: list[Callable[[], None]] = field(default_factory=list)
 
     def add_cleanup(self, fn: Callable[[], None]) -> None:

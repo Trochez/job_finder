@@ -1,4 +1,6 @@
 from tests.fakes.mcp import FakeMcpClient
+from tests.fakes.overleaf_renderer import FakeOverleafRenderer
+from tests.fakes.overleaf_source import FakeOverleafSource
 from tests.fakes.renderer import FakeRenderer
 from tests.fakes.sentinels import (
     SENTINEL_ACCESS_TOKEN,
@@ -19,6 +21,8 @@ __all__ = [
     "SENTINEL_EVIDENCE_LINK",
     "SENTINEL_PHONE",
     "FakeMcpClient",
+    "FakeOverleafRenderer",
+    "FakeOverleafSource",
     "FakeRenderer",
     "FakeTelegramClient",
     "SentinelDataSet",

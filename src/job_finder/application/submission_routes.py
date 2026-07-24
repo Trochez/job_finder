@@ -116,12 +116,14 @@ def classify_route(job_listing: JobListing) -> ApplicationRoute:
 # ── route preparation ────────────────────────────────────────────────────────
 
 
-def prepare_route(
+def prepare_route(  # noqa: PLR0913
     route: ApplicationRoute,
     renderer: CvRendererPort,
     *,
     candidate_profile_id: CandidateProfileId,
     output_path: Path,
+    renderer_type: str = "local",
+    overleaf_renderer: CvRendererPort | None = None,
 ) -> ExecutionAccess:
     """Prepare an ``ExecutionAccess`` for the given route.
 
@@ -135,6 +137,10 @@ def prepare_route(
         renderer: The CV renderer to produce the artifact.
         candidate_profile_id: The candidate whose CV should be rendered.
         output_path: Directory where the rendered artifact will be written.
+        renderer_type: Selector for which renderer to use
+            (``"local"`` or ``"overleaf"``).  Defaults to ``"local"``.
+        overleaf_renderer: Overleaf-backed renderer, required when
+            *renderer_type* is ``"overleaf"``.
 
     Returns:
         An ``ExecutionAccess`` record with the rendered artifact ref.
@@ -142,7 +148,22 @@ def prepare_route(
     Raises:
         EvidenceInsufficient: When the renderer cannot locate required
             templates or working tree.
+        CvRendererAccessDeniedError: When *renderer_type* is not
+            recognised.
     """
+    if overleaf_renderer is not None:
+        from job_finder.adapters.cv_renderer_policy import (  # noqa: PLC0415
+            create_cv_renderer,
+        )
+
+        active_renderer = create_cv_renderer(
+            renderer_type=renderer_type,
+            local_renderer=renderer,
+            overleaf_renderer=overleaf_renderer,
+        )
+    else:
+        active_renderer = renderer
+
     render_request = RenderRequest(
         candidate_profile_id=candidate_profile_id,
         template_name="moderncv",
@@ -150,7 +171,7 @@ def prepare_route(
         fact_ids=(),
     )
 
-    result = renderer.render(render_request)
+    result = active_renderer.render(render_request)
     artifact_ref = result.artifact_id
 
     return ExecutionAccess(

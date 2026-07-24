@@ -27,6 +27,10 @@ case "$MODO" in
     ORIGEN="$PATH_CONFIG/oh-my-opencode-nv.json"
     MODO="nv"
     ;;
+  "onv")
+    ORIGEN="$PATH_CONFIG/oh-my-opencode-nv.json"
+    MODO="onv"
+    ;;
   "dsfv4")
     ORIGEN="$PATH_CONFIG/oh-my-opencode-ocdsfv4.json"
     MODO="dsfv4"
@@ -34,6 +38,18 @@ case "$MODO" in
   "dslw")
     ORIGEN="$PATH_CONFIG/oh-my-opencode-dslw.json"
     MODO="dplw"
+    ;;
+  "odslw")
+    ORIGEN="$PATH_CONFIG/oh-my-opencode-odslw.json"
+    MODO="odslw"
+    ;;
+  "ofree")
+    ORIGEN="$PATH_CONFIG/oh-my-opencode-ofree.json"
+    MODO="ofree"
+    ;;
+  "onv")
+    ORIGEN="$PATH_CONFIG/oh-my-opencode-onv.json"
+    MODO="onv"
     ;;
   "lw")
     ORIGEN="$PATH_CONFIG/oh-my-opencode-lowcost.json"

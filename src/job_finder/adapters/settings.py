@@ -35,6 +35,7 @@ class PrivateSettings:
     app_data_dir: Path
     sqlite_database_path: Path
     secrets_reference_path: Path | None = None
+    overleaf_config_path: Path | None = None
 
     def __post_init__(self) -> None:
         """Validate fields after initialization."""
@@ -67,12 +68,27 @@ class PrivateSettings:
                 field_name="secrets_reference_path",
             )
 
+        validated_overleaf_config_path: Path | None = None
+        if self.overleaf_config_path is not None:
+            validated_overleaf_config_path = _validate_absolute_path(
+                self.overleaf_config_path,
+                field_name="overleaf_config_path",
+            )
+            _reject_secret_path_textually(
+                validated_overleaf_config_path,
+                field_name="overleaf_config_path",
+            )
         object.__setattr__(self, "app_data_dir", validated_app_data_dir)
         object.__setattr__(self, "sqlite_database_path", validated_database_path)
         object.__setattr__(
             self,
             "secrets_reference_path",
             validated_secrets_reference_path,
+        )
+        object.__setattr__(
+            self,
+            "overleaf_config_path",
+            validated_overleaf_config_path,
         )
 
     @classmethod
@@ -82,6 +98,7 @@ class PrivateSettings:
         app_data_dir: Path,
         sqlite_database_name: str = "job_finder.sqlite3",
         secrets_reference_path: Path | None = None,
+        overleaf_config_path: Path | None = None,
     ) -> PrivateSettings:
         """Construct a PrivateSettings from a directory and database name."""
         validated_app_data_dir = _validate_private_directory(
@@ -106,10 +123,22 @@ class PrivateSettings:
                 field_name="secrets_reference_path",
             )
 
+        validated_overleaf_config_path: Path | None = None
+        if overleaf_config_path is not None:
+            validated_overleaf_config_path = _validate_absolute_path(
+                overleaf_config_path,
+                field_name="overleaf_config_path",
+            )
+            _reject_secret_path_textually(
+                validated_overleaf_config_path,
+                field_name="overleaf_config_path",
+            )
+
         return cls(
             app_data_dir=validated_app_data_dir,
             sqlite_database_path=sqlite_database_path,
             secrets_reference_path=validated_secrets_reference_path,
+            overleaf_config_path=validated_overleaf_config_path,
         )
 
 

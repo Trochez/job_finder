@@ -6,7 +6,7 @@
 {% block content %}
 <div class="page-header">
   <h1>CV Source</h1>
-  <p>Manage candidate profile version and CV renderer path</p>
+  <p>Manage candidate profile version and CV renderer source</p>
 </div>
 
 <form method="POST" action="{{ url_for('cv_source') }}">
@@ -35,11 +35,51 @@
     </div>
 
     <div class="form-group">
-      <label for="renderer_path">Local Renderer Path</label>
-      <input type="text" id="renderer_path" name="renderer_path"
-        value="{{ settings.renderer_path }}" placeholder="/path/to/renderer"
-        aria-describedby="renderer-help">
-      <p class="help-text" id="renderer-help">Filesystem path to the CV renderer executable or script</p>
+      <label>Renderer Type</label>
+      <div class="radio-group">
+        <label class="radio-label">
+          <input type="radio" name="renderer_type" value="local"
+            {% if settings.renderer_type == 'local' %}checked{% endif %}
+            onchange="toggleRendererFields()">
+          Local Renderer
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="renderer_type" value="overleaf"
+            {% if settings.renderer_type == 'overleaf' %}checked{% endif %}
+            onchange="toggleRendererFields()">
+          Overleaf Integration
+        </label>
+      </div>
+    </div>
+
+    <div id="local-fields" class="renderer-fields">
+      <div class="form-group">
+        <label for="renderer_path">Local Renderer Path</label>
+        <input type="text" id="renderer_path" name="renderer_path"
+          value="{{ settings.renderer_path }}" placeholder="/path/to/renderer"
+          aria-describedby="renderer-help">
+        <p class="help-text" id="renderer-help">Filesystem path to the CV renderer executable or script</p>
+      </div>
+    </div>
+
+    <div id="overleaf-fields" class="renderer-fields">
+      <div class="form-group">
+        <label for="overleaf_project_id">Overleaf Project ID</label>
+        <input type="text" id="overleaf_project_id" name="overleaf_project_id"
+          value="{{ settings.overleaf_project_id }}"
+          pattern="[0-9a-f]{24}" title="24-character hexadecimal string"
+          placeholder="0123456789abcdef01234567"
+          aria-describedby="project-id-help">
+        <p class="help-text" id="project-id-help">24-character hex project ID from Overleaf project URL</p>
+      </div>
+
+      <div class="form-group">
+        <label for="overleaf_token">Overleaf Git Token</label>
+        <input type="password" id="overleaf_token" name="overleaf_token"
+          value="{{ settings.overleaf_token }}" placeholder="Enter Overleaf Git token"
+          aria-describedby="token-help">
+        <p class="help-text" id="token-help">Git token for authenticating with Overleaf (stored on filesystem, never in database)</p>
+      </div>
     </div>
   </div>
 
@@ -48,4 +88,22 @@
     <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
   </div>
 </form>
+
+<script>
+function toggleRendererFields() {
+  var localFields = document.getElementById('local-fields');
+  var overleafFields = document.getElementById('overleaf-fields');
+  var isOverleaf = document.querySelector('input[name="renderer_type"]:checked').value === 'overleaf';
+
+  if (isOverleaf) {
+    localFields.style.display = 'none';
+    overleafFields.style.display = 'block';
+  } else {
+    localFields.style.display = 'block';
+    overleafFields.style.display = 'none';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', toggleRendererFields);
+</script>
 {% endblock %}
