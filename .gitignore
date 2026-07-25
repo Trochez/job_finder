@@ -43,5 +43,9 @@ oh-my-opencode.json
 oc.sh
 oc_termly.sh
 
+# Debug scratch files
+curl_output.txt
+server.log
+
 # Keys/secrets
 .keys/

@@ -33,6 +33,33 @@ def base_deps(tmp_path: Path) -> Generator[AppDependencies, None, None]:
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
 
+    # Schema: candidate_profiles + cv_source_settings with FK to
+    # candidate_profiles(profile_id). Without these tables the POST route's
+    # inner except (OperationalError) masks the FK bug we test here.
+    connection.execute(
+        "CREATE TABLE IF NOT EXISTS candidate_profiles ("
+        "profile_id TEXT PRIMARY KEY,"
+        "candidate_id TEXT NOT NULL UNIQUE,"
+        "active_version_id TEXT NOT NULL,"
+        "timezone_name TEXT NOT NULL,"
+        "created_at_utc TEXT NOT NULL"
+        ")",
+    )
+    connection.execute(
+        "CREATE TABLE IF NOT EXISTS cv_source_settings ("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "renderer_type TEXT NOT NULL CHECK (renderer_type IN ('local', 'overleaf')),"
+        "overleaf_project_id TEXT,"
+        "active_version TEXT,"
+        "candidate_profile_id TEXT,"
+        "updated_at TEXT NOT NULL,"
+        "FOREIGN KEY (candidate_profile_id) "
+        "REFERENCES candidate_profiles(profile_id) ON DELETE RESTRICT,"
+        "UNIQUE(candidate_profile_id)"
+        ")",
+    )
+    connection.commit()
+
     deps = AppDependencies(
         settings=settings,
         connection=connection,

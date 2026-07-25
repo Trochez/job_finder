@@ -18,6 +18,16 @@ if TYPE_CHECKING:
     from collections.abc import Generator
     from pathlib import Path
 
+_CREATE_CANDIDATE_PROFILES_TABLE = """
+CREATE TABLE IF NOT EXISTS candidate_profiles (
+    profile_id TEXT PRIMARY KEY,
+    candidate_id TEXT NOT NULL UNIQUE,
+    active_version_id TEXT NOT NULL,
+    timezone_name TEXT NOT NULL,
+    created_at_utc TEXT NOT NULL
+);
+"""
+
 _CREATE_CV_SOURCE_TABLE = """
 CREATE TABLE IF NOT EXISTS cv_source_settings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,6 +36,8 @@ CREATE TABLE IF NOT EXISTS cv_source_settings (
     active_version TEXT,
     candidate_profile_id TEXT,
     updated_at TEXT NOT NULL,
+    FOREIGN KEY (candidate_profile_id)
+        REFERENCES candidate_profiles(profile_id) ON DELETE RESTRICT,
     UNIQUE(candidate_profile_id)
 );
 """
@@ -53,6 +65,7 @@ def deps_with_secrets(
     connection.execute("PRAGMA user_version = 1")
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
+    connection.execute(_CREATE_CANDIDATE_PROFILES_TABLE)
     connection.execute(_CREATE_CV_SOURCE_TABLE)
 
     deps = AppDependencies(
@@ -80,6 +93,7 @@ def deps_basic(tmp_path: Path) -> Generator[AppDependencies, None, None]:
     connection.execute("PRAGMA user_version = 1")
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
+    connection.execute(_CREATE_CANDIDATE_PROFILES_TABLE)
     connection.execute(_CREATE_CV_SOURCE_TABLE)
 
     deps = AppDependencies(

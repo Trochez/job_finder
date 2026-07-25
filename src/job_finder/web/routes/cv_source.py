@@ -6,17 +6,22 @@ POST /cv-source — save CV source settings, redirect
 
 from __future__ import annotations
 
+import logging
 import re
 import sqlite3
+import traceback
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from starlette.responses import Response  # noqa: TC002
 
 from job_finder.adapters.repositories.cv_source import (
     CvSourceSettingsRepository,
 )
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -27,6 +32,29 @@ router = APIRouter()
 
 _OVERLEAF_PROJECT_ID_RE = re.compile(r"^[0-9a-f]{24}$")
 _DEFAULT_CANDIDATE_PROFILE_ID = "default"
+
+
+def _ensure_default_profile(connection: sqlite3.Connection) -> None:
+    """Insert the default candidate profile row if absent.
+
+    The cv_source_settings table has a FK to candidate_profiles(profile_id),
+    so upsert_settings fails with IntegrityError when no profile row exists.
+    INSERT OR IGNORE keeps the call idempotent on repeated POSTs.
+    """
+    now_utc = datetime.now(UTC).isoformat()
+    connection.execute(
+        "INSERT OR IGNORE INTO candidate_profiles "
+        "(profile_id, candidate_id, active_version_id, timezone_name, created_at_utc) "
+        "VALUES (?, ?, ?, ?, ?)",
+        (
+            _DEFAULT_CANDIDATE_PROFILE_ID,
+            _DEFAULT_CANDIDATE_PROFILE_ID,
+            "",
+            "UTC",
+            now_utc,
+        ),
+    )
+    connection.commit()
 
 
 def _get_default_settings() -> dict[str, object]:
@@ -119,7 +147,7 @@ async def cv_source_get(request: Request) -> Response:
 
 
 @router.post("/cv-source", name="cv_source_post")
-async def cv_source_post(request: Request) -> Response:
+async def cv_source_post(request: Request) -> Response:  # noqa: C901
     """Save CV source settings from form data."""
     form = await request.form()
     active_version = str(form.get("profile_version", ""))
@@ -143,35 +171,53 @@ async def cv_source_post(request: Request) -> Response:
                 status_code=303,
             )
 
-        deps = getattr(request.app.state, "deps", None)
-        if deps is not None:
-            settings_ = getattr(deps, "settings", None)
-            if settings_ is not None:
-                secrets_path = getattr(settings_, "secrets_reference_path", None)
-                if secrets_path is not None:
-                    token_path = secrets_path / "overleaf_token"
-                    _write_overleaf_token(token_path, overleaf_token)
-
-    settings = {
-        "active_version": active_version,
-        "renderer_path": renderer_path,
-        "renderer_type": renderer_type,
-        "overleaf_project_id": overleaf_project_id,
-        "overleaf_token": "",
-    }
-    request.app.state.cv_settings = settings
-
     try:
-        repo = _build_repo_from_deps(request)
-        if repo is not None:
-            repo.upsert_settings(
-                renderer_type=renderer_type,
-                overleaf_project_id=overleaf_project_id or None,
-                active_version=active_version or None,
-                candidate_profile_id=_DEFAULT_CANDIDATE_PROFILE_ID,
-            )
-    except (sqlite3.ProgrammingError, sqlite3.OperationalError):
-        pass
+        # Token writing for overleaf (if applicable)
+        if renderer_type == "overleaf":
+            deps = getattr(request.app.state, "deps", None)
+            if deps is not None:
+                settings_ = getattr(deps, "settings", None)
+                if settings_ is not None:
+                    secrets_path = getattr(settings_, "secrets_reference_path", None)
+                    if secrets_path is not None:
+                        token_path = secrets_path / "overleaf_token"
+                        _write_overleaf_token(token_path, overleaf_token)
+
+        # Set app state and repo upsert
+        settings = {
+            "active_version": active_version,
+            "renderer_path": renderer_path,
+            "renderer_type": renderer_type,
+            "overleaf_project_id": overleaf_project_id,
+            "overleaf_token": "",
+        }
+        request.app.state.cv_settings = settings
+
+        try:
+            repo = _build_repo_from_deps(request)
+            if repo is not None:
+                connection = getattr(request.app.state.deps, "connection", None)
+                if connection is not None:
+                    _ensure_default_profile(connection)
+                repo.upsert_settings(
+                    renderer_type=renderer_type,
+                    overleaf_project_id=overleaf_project_id or None,
+                    active_version=active_version or None,
+                    candidate_profile_id=_DEFAULT_CANDIDATE_PROFILE_ID,
+                )
+        except (sqlite3.ProgrammingError, sqlite3.OperationalError):
+            pass
+
+    except Exception as e:
+        logger.exception("cv_source_post failed")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "detail": str(e),
+                "error_type": "internal_error",
+                "traceback": traceback.format_exc()
+            }
+        )
 
     _flash(request, "success", "CV source settings saved")
     return RedirectResponse(
