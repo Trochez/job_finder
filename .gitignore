@@ -31,6 +31,10 @@ Thumbs.db
 .omo/state/
 # .omo/evidence/ — evidence is committed as part of the plan deliverables
 
+# Ignore new dotfiles and dotdirectories (but keep .gitignore itself)
+.*/
+!.gitignore
+
 # Config artifacts
 .omx/
 .opencode/
