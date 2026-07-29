@@ -1,0 +1,86 @@
+- main [ref=e2]:
+  - region [ref=e3]:
+    - generic [ref=e4]:
+      - paragraph [ref=e5]: job_finder
+      - heading "Find roles fast. Track less noise." [level=1] [ref=e6]
+      - paragraph [ref=e7]: "Small, focused job board bootstrap: search, filter, save, and review roles without dashboard clutter."
+    - generic "platform stats" [ref=e8]:
+      - generic [ref=e9]:
+        - strong [ref=e10]: "3"
+        - text: open roles
+      - generic [ref=e11]:
+        - strong [ref=e12]: "0"
+        - text: saved
+      - generic [ref=e13]:
+        - strong [ref=e14]: "1"
+        - text: remote
+  - region "filters" [ref=e15]:
+    - generic [ref=e16]:
+      - generic [ref=e17]: Search
+      - searchbox "Search" [ref=e18]
+    - generic [ref=e19]:
+      - generic [ref=e20]: Type
+      - combobox "Type" [ref=e21]:
+        - option "All" [selected]
+        - option "Remote"
+        - option "Hybrid"
+        - option "Onsite"
+    - button "Reset" [ref=e22] [cursor=pointer]
+  - region [ref=e23]:
+    - generic [ref=e24]:
+      - heading "Roles" [level=2] [ref=e25]
+      - paragraph [ref=e26]: 3 matches
+    - generic [ref=e27]:
+      - article [ref=e28]:
+        - generic [ref=e29]:
+          - generic [ref=e30]:
+            - text: remote
+            - heading "Frontend Engineer" [level=3] [ref=e31]
+          - generic [ref=e32]: $120k–$150k
+        - paragraph [ref=e33]: Northstar AI · Global
+        - paragraph [ref=e34]: Own product surfaces, ship clean UI, and keep hiring loops simple.
+        - generic [ref=e35]:
+          - generic [ref=e36]: TypeScript
+          - generic [ref=e37]: React
+          - generic [ref=e38]: Design systems
+        - generic [ref=e39]:
+          - generic [ref=e40]: Apply fast
+          - button "Save" [ref=e41] [cursor=pointer]
+      - article [ref=e42]:
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - text: hybrid
+            - heading "Full Stack Engineer" [level=3] [ref=e45]
+          - generic [ref=e46]: $135k–$170k
+        - paragraph [ref=e47]: Signal Works · Austin, TX
+        - paragraph [ref=e48]: Build the core workflow engine for a lean operations platform.
+        - generic [ref=e49]:
+          - generic [ref=e50]: Node
+          - generic [ref=e51]: Postgres
+          - generic [ref=e52]: B2B
+        - generic [ref=e53]:
+          - generic [ref=e54]: New
+          - button "Save" [ref=e55] [cursor=pointer]
+      - article [ref=e56]:
+        - generic [ref=e57]:
+          - generic [ref=e58]:
+            - text: onsite
+            - heading "Product Designer" [level=3] [ref=e59]
+          - generic [ref=e60]: $110k–$145k
+        - paragraph [ref=e61]: Orbit Labs · New York, NY
+        - paragraph [ref=e62]: Shape the visual language for an app people use daily.
+        - generic [ref=e63]:
+          - generic [ref=e64]: Figma
+          - generic [ref=e65]: Prototyping
+          - generic [ref=e66]: Motion
+        - generic [ref=e67]:
+          - generic [ref=e68]: Saved by peers
+          - button "Save" [ref=e69] [cursor=pointer]
+  - complementary [ref=e70]:
+    - heading "Automation lane" [level=2] [ref=e71]
+    - list [ref=e72]:
+      - listitem [ref=e73]: Scan listings.
+      - listitem [ref=e74]: Shortlist by fit.
+      - listitem [ref=e75]: Save promising roles.
+  - link "Created By Deerflow" [ref=e76] [cursor=pointer]:
+    - /url: https://deerflow.tech
